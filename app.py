@@ -27,7 +27,7 @@ runningProcs = []
 
 
 # Load classification model
-clf = load('personClassifier.joblib')
+# clf = load('personClassifier.joblib')
 
 #low range of the sensor (this will be blue on the screen)
 MINTEMP = 18
@@ -114,13 +114,11 @@ def record_loop(min_temp, max_temp):
             for jx, pixel in enumerate(row):
                 interp.append(colors[constrain(int(pixel), 0, COLORDEPTH- 1)])
         data = numpy.asarray([predictor])
-       	if clf.predict(data)[0] == 1:
-            sse.publish({"message": "Person detected"}, type='classification')
-        else:
-            sse.publish({"message": "No person detected"}, type='classification')
+       	#if clf.predict(data)[0] == 1:
+        #    sse.publish({"message": "Person detected"}, type='classification')
+        #else:
+        #    sse.publish({"message": "No person detected"}, type='classification')
         sse.publish({"message": interp}, type='pixels')
-
-
 
 
 
