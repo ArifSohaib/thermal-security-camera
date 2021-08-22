@@ -6,7 +6,11 @@ from flask import request
 from multiprocessing import Process, Value
 import time
 import numpy
-from Adafruit_AMG88xx import Adafruit_AMG88xx
+#from Adafruit_AMG88xx import Adafruit_AMG88xx
+#from Adafruit_AMG88xx import Adafruit_AMG88xx
+import adafruit_amg88xx
+import busio 
+import board 
 import os
 import math
 import time
@@ -42,7 +46,9 @@ os.putenv('SDL_FBDEV', '/dev/fb1')
 
 
 #initialize the sensor
-sensor = Adafruit_AMG88xx()
+i2c = busio.I2C(board.SCL, board.SDA)
+sensor = adafruit_amg88xx.AMG88XX(i2c)
+#sensor = Adafruit_AMG88xx()
 
 points = [(math.floor(ix / 8), (ix % 8)) for ix in range(0, 64)]
 grid_x, grid_y = np.mgrid[0:7:32j, 0:7:32j]
@@ -83,11 +89,18 @@ def index():
 
 
 #some utility functions
+# def constrain(val, min_val, max_val):
+#     return min(max_val, max(min_val, val))
+
+# def map(x, in_min, in_max, out_min, out_max):
+#   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+
 def constrain(val, min_val, max_val):
     return min(max_val, max(min_val, val))
 
-def map(x, in_min, in_max, out_min, out_max):
-  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+
+def map_value(x, in_min, in_max, out_min, out_max):
+    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 
 
 def record_loop(min_temp, max_temp):
@@ -95,9 +108,13 @@ def record_loop(min_temp, max_temp):
     while(1):
 
         #read the pixels
-        pixels = sensor.readPixels()
-        raw_pixels = pixels
-        pixels = [map(p, min_temp, max_temp, 0, COLORDEPTH - 1) for p in pixels]
+        pixels = sensor.pixels#.rea()
+        pixels = []
+        for row in sensor.pixels:
+            pixels = pixels + row
+        pixels = [map_value(p, MINTEMP, MAXTEMP, 0, COLORDEPTH - 1) for p in pixels]
+        #raw_pixels = pixels
+        #pixels = [map(p, min_temp, max_temp, 0, COLORDEPTH - 1) for p in pixels]
         #data = numpy.asarray([pixels])
         #print(clf.predict(data))
         #print(pixels)
@@ -105,11 +122,11 @@ def record_loop(min_temp, max_temp):
         predictor = []
         #perform interpolation
         bicubic = griddata(points, pixels, (grid_x, grid_y), method='cubic')
-        rawbicubic = griddata(points, raw_pixels, (grid_x, grid_y), method='cubic')
+        #rawbicubic = griddata(points, raw_pixels, (grid_x, grid_y), method='cubic')
         #draw everything
-        for ix, row in enumerate(rawbicubic):
-            for jx, pixel in enumerate(row):
-                predictor.append(int(pixel))
+        # for ix, row in enumerate(rawbicubic):
+        #     for jx, pixel in enumerate(row):
+        #         predictor.append(int(pixel))
         for ix, row in enumerate(bicubic):
             for jx, pixel in enumerate(row):
                 interp.append(colors[constrain(int(pixel), 0, COLORDEPTH- 1)])
@@ -118,7 +135,16 @@ def record_loop(min_temp, max_temp):
         #    sse.publish({"message": "Person detected"}, type='classification')
         #else:
         #    sse.publish({"message": "No person detected"}, type='classification')
+        #pixels/len(pixels)
+        total_pixels = 0
+        for px in pixels:
+            total_pixels += px 
+
+        sse.publish({"message":str(max(pixels))}, type="classification")
         sse.publish({"message": interp}, type='pixels')
+
+if __name__ == "__main__":
+    app.run("0.0.0.0", debug = True)
 
 
 

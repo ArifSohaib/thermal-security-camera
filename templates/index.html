@@ -22,10 +22,11 @@
           var data = JSON.parse(event.data);
           classLabel.innerHTML = data.message;
           var currTime = (new Date()).getTime();
-          if (currTime > lastUtterance + 2000 && data.message === "Person detected") {
-            speechSynthesis.speak(new SpeechSynthesisUtterance("IOT security, identify yourself"));		
-            lastUtterance = currTime;
-          }	
+          // if (currTime > lastUtterance + 2000){// && data.message === "Person detected") {
+          //   //speechSynthesis.speak(new SpeechSynthesisUtterance("IOT security, identify yourself"));		
+          //   //speechSynthesis.speak(new SpeechSynthesisUtterance(`temperature is ${data.message}`));		
+          //   lastUtterance = currTime;
+          // }	
     }, false);
     // multiplier of the final security camera feed size e.g. originally 32 x 32 => 480 x 480 with numDuplicates = 15 
     var numDuplicates = 15;

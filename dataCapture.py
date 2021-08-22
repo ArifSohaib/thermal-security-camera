@@ -1,4 +1,5 @@
-from Adafruit_AMG88xx import Adafruit_AMG88xx
+#from Adafruit_AMG88xx import Adafruit_AMG88xx
+import adafruit_amg88xx
 import os
 import math
 import time
@@ -6,6 +7,8 @@ import numpy as np
 from scipy.interpolate import griddata
 from colour import Color
 import json
+import busio 
+import board 
 
 # file name for the data capture
 FILENAME_FOR_CAPTURED_DATA = 'person_absent.json'
@@ -23,8 +26,9 @@ os.putenv('SDL_FBDEV', '/dev/fb1')
 
 
 #initialize the sensor
-sensor = Adafruit_AMG88xx()
-
+#sensor = Adafruit_AMG88xx()
+i2c = busio.I2C(board.SCL, board.SDA)
+sensor = adafruit_amg88xx.AMG88XX(i2c)
 points = [(math.floor(ix / 8), (ix % 8)) for ix in range(0, 64)]
 grid_x, grid_y = np.mgrid[0:7:32j, 0:7:32j]
 
